@@ -1,1 +1,22 @@
-<p>login works!</p>
+<div id="login">
+    <h1>Login</h1>
+    <form>
+      <!-- Email input -->
+      <div class="form-outline mb-4">
+        <input [(ngModel)]="username" name="username" type="text" id="form2Example1" class="form-control" />
+        <label class="form-label" for="form2Example1">Username</label>
+      </div>
+    
+      <!-- Password input -->
+      <div class="form-outline mb-4">
+        <input [(ngModel)]="password" name="password" #ctrl="ngModel" type="password" id="form2Example2" class="form-control" />
+        <label class="form-label" for="form2Example2">Password</label>
+      </div>
+    
+      <!-- Submit button -->
+      <button type="button" class="btn btn-primary btn-block mb-4" (click)="loginUser()">Sign in</button>
+    </form>
+    <div class="alert alert-danger" *ngIf="errorMsg != ''" role="alert">
+       {{errorMsg}}
+    </div>
+</div>

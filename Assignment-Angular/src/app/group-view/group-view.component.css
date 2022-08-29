@@ -70,10 +70,12 @@
 .group-view-item {
     background-color: rgb(40, 40, 40);
     color: white;
-    width:120px;
+    width:100%;
     justify-content: center;
     align-items: center;
     display: flex;
+    margin-left: 1px;
+    margin-right: 1px;
 }
 
 .group-view-item.active {

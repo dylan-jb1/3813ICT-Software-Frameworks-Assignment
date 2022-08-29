@@ -1,0 +1,16 @@
+{
+    "users": [
+        {
+            "username": "dylan_jb1",
+            "email": "dylan@griffith.com",
+            "password": "pass.123",
+            "roles": []
+        },
+        {
+            "username": "super",
+            "email": "super_admin.com",
+            "password": "secure_pass",
+            "roles": ["super_admin"]
+        }
+    ]
+}

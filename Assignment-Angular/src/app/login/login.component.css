@@ -1,0 +1,14 @@
+#login {
+    padding:300px;
+}
+
+#login h1 {
+    text-align: center;
+    padding-bottom: 50px;
+}
+
+button {
+    width:40%;
+    margin-left:30%;
+    margin-right:30%;
+}

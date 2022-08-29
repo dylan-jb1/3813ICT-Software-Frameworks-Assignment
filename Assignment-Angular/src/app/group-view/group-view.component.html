@@ -4,41 +4,30 @@
             3813ICT
         </div>
         <ul class="list-group list-group-flush list-group-horizontal flex-grow-1">
-            <li class="list-group-item group-view-item active">Super</li>
-            <li class="list-group-item group-view-item">Admin</li>
-            <li class="list-group-item group-view-item">User</li>
+            <li *ngFor="let group of groups" class="list-group-item group-view-item" [class.active]="activeGroup.groupId==group.groupId" (click)="updateGroup(group)">{{group.groupName}}</li>
         </ul>
         <div id="logoutButton">
-            <a class="btn btn-primary">Logout</a>
+            <a class="btn btn-primary" (click)="logout()">Logout</a>
         </div>
     </div>
     <div id="groupView" class="d-flex flex-grow-1">
         <div id="contentChannels">
             <div class="list-group list-group-flush">
-                <a href="#" class="list-group-item list-group-item-action active" aria-current="true">
-                    Channel #1
-                </a>
-                <a href="#" class="list-group-item list-group-item-action">Channel #2</a>
-                <a href="#" class="list-group-item list-group-item-action">Channel #3</a>
-                <a href="#" class="list-group-item list-group-item-action">Channel #4</a>
+                <a *ngFor="let channel of channels"  class="list-group-item group-view-item" [class.active]="activeChannel.channelId==channel.channelId" (click)="updateChannel(channel)">{{channel.channelName}}</a>
             </div>
         </div>
         <div id="channelView" class="d-flex flex-column justify-content-end flex-grow-1">
             <ul id="messages" class="list-group list-group-flush">
-                <li class="list-group-item">
+                <li *ngFor="let message of activeChannel.messageHistory" class="list-group-item">
                     <div id="messageAuthor">
-                        Dylan Bowler
+                        {{message.messageAuthor}}
                     </div>
                     <div id="messageContent">
-                        The first item
+                        {{message.messageContent}}
                     </div>
                 </li>
-                <li class="list-group-item">A second item</li>
-                <li class="list-group-item">A third item</li>
-                <li class="list-group-item">A fourth item</li>
-                <li class="list-group-item">And a fifth one</li>
             </ul>
-            <div class="input-group mb-3" id="chatBox">
+            <div class="input-group mb-3" id="chatBox" *ngIf="activeChannel.empty == null">
                 <input type="text" class="form-control" placeholder="Type your message..." aria-label="message content" aria-describedby="button-addon2">
                 <button class="btn btn-primary" type="button" id="button-addon2">Send</button>
             </div>

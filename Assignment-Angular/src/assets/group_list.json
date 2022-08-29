@@ -1,0 +1,27 @@
+{
+    "groups": [ 
+        {
+            "groupId": "group_1221",
+            "groupName": "Group 1",
+            "channels": [
+                "channel_123",
+                "channel_234",
+                "channel_345"
+            ],
+            "users": [
+                "dylan_jb1"
+            ]
+        },
+        {
+            "groupId": "group_1234",
+            "groupName": "Group 2",
+            "channels": [
+                "channel_123",
+                "channel_345"
+            ],
+            "users": [
+                "dylan_jb1"
+            ]
+        }
+    ]
+}
