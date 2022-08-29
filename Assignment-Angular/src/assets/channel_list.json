@@ -3,7 +3,7 @@
         {
             "channelId": "channel_123",
             "channelName": "New member welcome channel",
-            "bannedUsers": [
+            "userAccess": [
             ],
             "messageHistory": [
                 {
@@ -17,7 +17,7 @@
         {
             "channelId": "channel_234",
             "channelName": "Business stuff",
-            "bannedUsers": [],
+            "userAccess": [],
             "messageHistory": [
                 {
                     "messageId": "message_000000002",
@@ -36,8 +36,92 @@
         {
             "channelId": "channel_345",
             "channelName": "Example Channel",
-            "bannedUsers": [],
+            "userAccess": [],
             "messageHistory": [
+                {
+                    "messageId": "message_000000004",
+                    "messageAuthor": "dylan_jb1",
+                    "messageContent": "Wow, this is a nice channel.",
+                    "messageTime": "1661742475"
+                },
+                {
+                    "messageId": "message_000000005",
+                    "messageAuthor": "dylan_jb1",
+                    "messageContent": "Hope I don't get removed from it.",
+                    "messageTime": "1661773245"
+                },
+                {
+                    "messageId": "message_000000004",
+                    "messageAuthor": "dylan_jb1",
+                    "messageContent": "Wow, this is a nice channel.",
+                    "messageTime": "1661742475"
+                },
+                {
+                    "messageId": "message_000000005",
+                    "messageAuthor": "dylan_jb1",
+                    "messageContent": "Hope I don't get removed from it.",
+                    "messageTime": "1661773245"
+                },
+                {
+                    "messageId": "message_000000004",
+                    "messageAuthor": "dylan_jb1",
+                    "messageContent": "Wow, this is a nice channel.",
+                    "messageTime": "1661742475"
+                },
+                {
+                    "messageId": "message_000000005",
+                    "messageAuthor": "dylan_jb1",
+                    "messageContent": "Hope I don't get removed from it.",
+                    "messageTime": "1661773245"
+                },
+                {
+                    "messageId": "message_000000004",
+                    "messageAuthor": "dylan_jb1",
+                    "messageContent": "Wow, this is a nice channel.",
+                    "messageTime": "1661742475"
+                },
+                {
+                    "messageId": "message_000000005",
+                    "messageAuthor": "dylan_jb1",
+                    "messageContent": "Hope I don't get removed from it.",
+                    "messageTime": "1661773245"
+                },
+                {
+                    "messageId": "message_000000004",
+                    "messageAuthor": "dylan_jb1",
+                    "messageContent": "Wow, this is a nice channel.",
+                    "messageTime": "1661742475"
+                },
+                {
+                    "messageId": "message_000000005",
+                    "messageAuthor": "dylan_jb1",
+                    "messageContent": "Hope I don't get removed from it.",
+                    "messageTime": "1661773245"
+                },
+                {
+                    "messageId": "message_000000004",
+                    "messageAuthor": "dylan_jb1",
+                    "messageContent": "Wow, this is a nice channel.",
+                    "messageTime": "1661742475"
+                },
+                {
+                    "messageId": "message_000000005",
+                    "messageAuthor": "dylan_jb1",
+                    "messageContent": "Hope I don't get removed from it.",
+                    "messageTime": "1661773245"
+                },
+                {
+                    "messageId": "message_000000004",
+                    "messageAuthor": "dylan_jb1",
+                    "messageContent": "Wow, this is a nice channel.",
+                    "messageTime": "1661742475"
+                },
+                {
+                    "messageId": "message_000000005",
+                    "messageAuthor": "dylan_jb1",
+                    "messageContent": "Hope I don't get removed from it.",
+                    "messageTime": "1661773245"
+                },
                 {
                     "messageId": "message_000000004",
                     "messageAuthor": "dylan_jb1",

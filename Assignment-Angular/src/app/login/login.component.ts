@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import userJson from "../../assets/user_list.json";
 
 @Component({
   selector: 'app-login',
@@ -12,6 +11,7 @@ export class LoginComponent implements OnInit {
   username: String = '';
   password: String = '';
   errorMsg: String = '';
+  user: any;
 
   constructor(private router: Router) { }
 
@@ -19,9 +19,12 @@ export class LoginComponent implements OnInit {
   }
 
   loginUser(): void {
-    console.log(this.username + " " + this.password)
-    if (userJson.users.some((user) => {console.log(user);return user.username == this.username && user.password == this.password})) {
-      localStorage.setItem('username',this.username.toString());
+    const userJsonString = localStorage.getItem('userJson');
+    let userJsonObj;
+    if (userJsonString != null)
+      userJsonObj = JSON.parse(userJsonString);
+    if (userJsonObj.users.some((user: any) => {{if (user.username == this.username && user.password == this.password) {this.user = user; return true} else return false}})) {
+      localStorage.setItem('user',JSON.stringify(this.user));
       this.router.navigate(["/groups"]);
     } else {
       this.errorMsg = "Invalid credentials. Please try again.";

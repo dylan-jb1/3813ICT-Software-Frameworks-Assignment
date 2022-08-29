@@ -6,18 +6,23 @@
         <ul class="list-group list-group-flush list-group-horizontal flex-grow-1">
             <li *ngFor="let group of groups" class="list-group-item group-view-item" [class.active]="activeGroup.groupId==group.groupId" (click)="updateGroup(group)">{{group.groupName}}</li>
         </ul>
-        <div id="logoutButton">
-            <a class="btn btn-primary" (click)="logout()">Logout</a>
+        <div id="menuButtons">
+            <div id="logoutButton">
+                <a class="btn btn-primary" (click)="logout()">Logout</a>
+            </div>
+            <a routerLink="/settings" id="settingsButton" class="btn btn-secondary" *ngIf="userHasPrivilige()" >
+                <img id="settingsImage" src="../../assets/settings.png"/>
+            </a>
         </div>
     </div>
     <div id="groupView" class="d-flex flex-grow-1">
-        <div id="contentChannels">
+        <div id="contentChannels" >
             <div class="list-group list-group-flush">
                 <a *ngFor="let channel of channels"  class="list-group-item group-view-item" [class.active]="activeChannel.channelId==channel.channelId" (click)="updateChannel(channel)">{{channel.channelName}}</a>
             </div>
         </div>
         <div id="channelView" class="d-flex flex-column justify-content-end flex-grow-1">
-            <ul id="messages" class="list-group list-group-flush">
+            <ul id="messages" class="list-group list-group-flush" >
                 <li *ngFor="let message of activeChannel.messageHistory" class="list-group-item">
                     <div id="messageAuthor">
                         {{message.messageAuthor}}

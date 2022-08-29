@@ -1,7 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import channelJson from '../../assets/channel_list.json'
-import groupJson from '../../assets/group_list.json'
 
 @Component({
   selector: 'app-group-view',
@@ -11,38 +9,53 @@ import groupJson from '../../assets/group_list.json'
 export class GroupViewComponent implements OnInit {
 
   username: String;
+  user: any;
   groups: any = [];
   channels: any = [];
   activeGroup: any = {};
   activeChannel: any = {empty:true};
 
   constructor(private router: Router) { 
-    const username = localStorage.getItem('username');
-    if (username == null) {
+    const user = localStorage.getItem('user');
+    if (user == null) {
       this.username = '';
       this.router.navigate(["/login"]);
     } else {
-      this.username = username;
+      const userObj = JSON.parse(user);
+      this.username = userObj.username;
+      this.user = userObj;
+
+      let groupJson;
+      const groupJsonString = localStorage.getItem('groupJson');
+      if (groupJsonString != null)
+        groupJson = JSON.parse(groupJsonString);
       
-      this.groups = groupJson.groups.filter(group => {
-        if (group.users.includes(username)) return true; else return false;
+      this.groups = groupJson.groups.filter((group: any) => {
+        if (group.users.includes(this.username.toString())) return true; else return false;
       })
 
       if (this.groups.length > 0) {
         this.activeGroup = this.groups[0];
   
-        this.channels = channelJson.channels.filter(channel => {
-          if ([...channel.bannedUsers, ''].includes(username) || !this.activeGroup.channels.includes(channel.channelId)) {return false;} else {return true};
+        let channelJson;
+        const channelJsonString = localStorage.getItem('channelJson');
+        if (channelJsonString != null)
+          channelJson = JSON.parse(channelJsonString);
+
+        this.channels = channelJson.channels.filter((channel: any) => {
+          if (!([...channel.userAccess, ''].includes(this.username.toString())) || !this.activeGroup.channels.includes(channel.channelId)) {return false;} else {return true};
         })
   
-        this.activeChannel = this.channels[0];
+        console.log(this.channels)
+        if (this.channels.length > 0)
+          this.activeChannel = this.channels[0];
       }
     }
   }
 
   ngOnInit(): void {
     if (this.username == '') {
-      localStorage.removeItem('username');
+      localStorage.removeItem('user');
       this.router.navigate(["/login"]);
     } else {
 
@@ -56,16 +69,30 @@ export class GroupViewComponent implements OnInit {
   updateGroup(group: any): void {
     this.activeGroup = group;
 
-    this.channels = channelJson.channels.filter(channel => {
-      if ([...channel.bannedUsers, ''].includes(this.username.toString()) || !this.activeGroup.channels.includes(channel.channelId)) {return false;} else {return true};
+  
+    let channelJson;
+    const channelJsonString = localStorage.getItem('channelJson');
+    if (channelJsonString != null)
+      channelJson = JSON.parse(channelJsonString);
+
+    this.channels = channelJson.channels.filter((channel: any) => {
+      if (!([...channel.userAccess, ''].includes(this.username.toString())) || !this.activeGroup.channels.includes(channel.channelId)) {return false;} else {return true};
     })
 
     if (!this.activeGroup.channels.includes(this.activeChannel.channelId))
-      this.activeChannel = this.channels[0];
+      if (this.channels.length > 0)
+        this.activeChannel = this.channels[0];
+      else {
+        this.activeChannel = {empty: true}
+      }
+  }
+
+  userHasPrivilige(): boolean {
+    return this.user.roles.length >0 || this.groups.some((group: any) => {return group.groupAssis.includes(this.username)})
   }
 
   logout(): void {
-    localStorage.removeItem('username');
+    localStorage.removeItem('user');
     this.router.navigate(["/login"]);
   }
 }

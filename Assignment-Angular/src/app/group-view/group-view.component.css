@@ -1,9 +1,5 @@
-#messages {
-    overflow-y: auto;
-}
-
 #groupNav {
-    height: 80px;
+    height: 100px;
     width:100%;
     background-color: rgb(20, 20, 20);
 }
@@ -49,6 +45,15 @@
     background-color: rgb(52, 52, 52);
 }
 
+#chatBox {
+    height:40px;
+}
+
+#messages {
+    overflow-y: auto;
+    max-height: calc(100vh - 160px);
+}
+
 #messages li {
     background-color: transparent;
     color: white;
@@ -59,12 +64,26 @@
     color:green;
 }
 
-#logoutButton {
+#menuButtons {
     align-items: center;
     justify-content: center;
+    flex-direction: column;
     display: flex;
-    height:80px;
-    width:80px;
+    height:100%;
+    width:120px;
+}
+
+#logoutButton {
+    margin-bottom: 5px;
+}
+
+#settingsButton {
+    height:40px;
+    width:75px;
+}
+
+#settingsImage {
+    height: 100%;
 }
 
 .group-view-item {

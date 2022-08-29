@@ -1,0 +1,479 @@
+<div id="settingsPage">
+  <div class="modal" id="channelModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Channel</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <p>Use this page to edit the channels of the selected user.</p>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Close
+          </button>
+          <button type="button" class="btn btn-primary">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="createChannelModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Create Channel</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <p>Use this page to create a new channel.</p>
+        </div>
+
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Close
+          </button>
+          <button type="button" class="btn btn-primary">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="userModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit User</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <p>Use this page to edit the group info of the selected user.</p>
+
+          <div
+            class="input-group mb-3"
+            *ngFor="let channel of groupTarget.channels"
+          >
+            <div class="input-group-text">
+              <input
+                class="form-check-input mt-0"
+                type="checkbox"
+                value=""
+                aria-label="Checkbox for following text input"
+                (change)="setChannelValue(channel, $event)"
+                [attr.checked]="
+                  getChannels(userTarget, groupTarget).includes(
+                    channel
+                  )
+                    ? ''
+                    : null
+                "
+              />
+            </div>
+            <input
+              type="text"
+              class="form-control"
+              aria-label="Text input with checkbox"
+              value="{{ channel }}"
+              disabled
+            />
+          </div>
+          <div class="form-check" >
+            <input class="form-check-input" type="checkbox" #groupAssis value="" id="flexCheckDefault" [attr.checked]="(groupTarget.groupAssis != undefined && groupTarget.groupAssis.includes(userTarget.username)) ? '' : null" [disabled]="!roleRequired('group_admin', null)">
+            <label class="form-check-label" for="flexCheckDefault">
+              Group Assis?
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Close
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="saveChannelChanges(userTarget.username, (hasOwnProperty('groupAssis') == true) ? groupAssis.checked : null, groupTarget)"
+            data-bs-dismiss="modal"
+          >
+            Save changes
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h1>Admin Page</h1>
+  <div class="settingsSection">
+    <h2>Groups</h2>
+    <div class="accordion" id="accordionExample">
+      <ng-container *ngFor="let group of groups">
+        <div class="accordion-item" *ngIf="roleRequired('group_assis', group)">
+          <h2 class="accordion-header" id="{{ 'header_' + group.groupId }}">
+            <button
+              class="accordion-button collapsed"
+              type="button"
+              data-bs-toggle="collapse"
+              attr.data-bs-target="{{ '#collapse_' + group.groupId }}"
+              aria-expanded="true"
+              attr.aria-controls="{{ 'collapse_' + group.groupId }}"
+            >
+              {{ group.groupName }} (id: {{group.groupId}})
+            </button>
+          </h2>
+          <div
+            id="{{ 'collapse_' + group.groupId }}"
+            class="accordion-collapse collapse"
+            attr.aria-labelledby="{{ 'header_' + group.groupId }}"
+            data-bs-parent="#accordionExample"
+          >
+            <div class="accordion-body">
+              <h3>Channels</h3>
+              <table class="table table-striped-columns table-hover">
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Channel Id</th>
+                    <th scope="col">Channel Name</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    *ngFor="
+                      let channel of filter(channels, group);
+                      let i = index
+                    "
+                    data-bs-toggle="modal"
+                    data-bs-target="#channelModal"
+                    (click)="channelTarget = channel"
+                  >
+                    <th scope="row">{{ i + 1 }}</th>
+                    <td>{{ channel.channelId }}</td>
+                    <td>{{ channel.channelName }}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <button
+                class="btn btn-primary"
+                id="newChannel"
+                data-bs-toggle="modal"
+                data-bs-target="#createChannelModal"
+                (click)="groupTarget = group"
+              >
+                Create new Channel
+              </button>
+              <h3>Users</h3>
+              <table class="table table-striped-columns table-hover">
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Username</th>
+                    <th scope="col">Group Assis?</th>
+                    <th scope="col">Roles</th>
+                    <th scope="col">Channels</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    *ngFor="let user of group.users; let i = index"
+                    data-bs-toggle="modal"
+                    data-bs-target="#userModal"
+                    (click)="userTarget = getUser(user)"
+                    (click)="groupTarget = group"
+                  >
+                    <th scope="row">{{ i + 1 }}</th>
+                    <td>{{ getUser(user).username }}</td>
+                    <td>{{ group.groupAssis.includes(user) }}</td>
+                    <td>{{ getRoles(getUser(user), group) }}</td>
+                    <td>{{ getChannels(getUser(user), group).join(', ') }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+
+    <div class="modal" id="createGroupModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">New Group</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <p>Use this page to create a new group.</p>
+
+            <div class="input-group mb-3">
+              <span class="input-group-text" id="inputGroup-sizing-default"
+                >Group Name</span
+              >
+              <input
+                type="text"
+                #groupname
+                class="form-control"
+                aria-label="Sizing example input"
+                aria-describedby="inputGroup-sizing-default"
+                (keyup)="
+                  submitGroup.disabled = validNewGroup(
+                    groupid.value,
+                    groupname.value
+                  )
+                "
+              />
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text" id="inputGroup-sizing-default"
+                >Group Id</span
+              >
+              <input
+                type="text"
+                #groupid
+                class="form-control"
+                aria-label="Sizing example input"
+                aria-describedby="inputGroup-sizing-default"
+                (keyup)="
+                  submitGroup.disabled = validNewGroup(
+                    groupid.value,
+                    groupname.value
+                  )
+                "
+              />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+            <button
+              type="button"
+              #submitGroup
+              class="btn btn-primary"
+              (click)="saveGroup(groupname.value, groupid.value)"
+              data-bs-dismiss="modal"
+              disabled
+            >
+              Save changes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button
+      class="btn btn-primary"
+      id="newGroup"
+      data-bs-toggle="modal"
+      data-bs-target="#createGroupModal"
+      *ngIf="roleRequired('group_admin', null)"
+    >
+      Create new group
+    </button>
+  </div>
+
+  <div class="settingsSection" *ngIf="roleRequired('group_admin', null)">
+    <h2>Users</h2>
+
+    <div class="modal" id="userGroupModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Edit User</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <p>Use this section to edit the groups of the selected user.</p>
+            <div class="input-group mb-3" *ngFor="let group of groups">
+              <div class="input-group-text">
+                <input
+                  class="form-check-input mt-0"
+                  type="checkbox"
+                  value=""
+                  aria-label="Checkbox for following text input"
+                  (change)="setGroupValue(group.groupId, $event)"
+                  [attr.checked]="
+                    userGroups(userTarget).includes(group.groupId) ? '' : null
+                  "
+                />
+              </div>
+              <input
+                type="text"
+                class="form-control"
+                aria-label="Text input with checkbox"
+                value="{{ group.groupId }}"
+                disabled
+              />
+            </div>
+            <div *ngIf="roleRequired('super_admin',null)">
+              <p>Use this section to edit the roles of the selected user.</p>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1" value="super_admin" [checked]="(userTarget.roles && userTarget.roles.includes('super_admin'))">
+                <label class="form-check-label" for="flexRadioDefault1">
+                  Super Admin
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" value="group_admin" [checked]="(userTarget.roles && userTarget.roles.includes('group_admin'))">
+                <label class="form-check-label" for="flexRadioDefault2">
+                  Group Admin
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" value="" [checked]="(!userTarget.roles || ((!userTarget.roles.includes('group_admin')) && (!userTarget.roles.includes('group_admin'))))">
+                <label class="form-check-label" for="flexRadioDefault2">
+                  None
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              (click)="saveGroupChanges(userTarget.username); saveAdminChanges(userTarget.username)"
+              data-bs-dismiss="modal"
+            >
+              Save changes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <table class="table table-striped-columns table-hover">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Username</th>
+          <th scope="col">Email</th>
+          <th scope="col">Groups</th>
+          <th scope="col">Roles</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let user of users; let i = index"
+          data-bs-toggle="modal"
+          data-bs-target="#userGroupModal"
+          (click)="userTarget = user"
+        >
+          <th scope="row">{{ i + 1 }}</th>
+          <td>{{ user.username }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ userGroups(user).join(", ") }}</td>
+          <td>{{ user.roles.join(", ") }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="modal" id="createUserModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">New User</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <p>Use this page to create a new user.</p>
+
+            <div class="input-group mb-3">
+              <span class="input-group-text" id="inputGroup-sizing-default">Username</span>
+              <input type="text" #usernameCreate class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" 
+              (keyup)="
+                submitUser.disabled = !validUser(usernameCreate.value, emailCreate.value, passwordCreate.value)
+              ">
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text" id="inputGroup-sizing-default">Email</span>
+              <input type="text" #emailCreate class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" 
+              (keyup)="
+              submitUser.disabled = !validUser(usernameCreate.value, emailCreate.value, passwordCreate.value)
+              ">
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text" id="inputGroup-sizing-default">Password</span>
+              <input type="text" #passwordCreate class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" 
+              (keyup)="
+              submitUser.disabled = !validUser(usernameCreate.value, emailCreate.value, passwordCreate.value)
+              ">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+            <button type="button" class="btn btn-primary" #submitUser (click)="createNewUser(usernameCreate.value, emailCreate.value, passwordCreate.value)" disabled
+            data-bs-dismiss="modal">Save changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button
+      class="btn btn-primary"
+      id="newGroup"
+      data-bs-toggle="modal"
+      data-bs-target="#createUserModal"
+      *ngIf="roleRequired('group_admin', null)"
+    >
+      Create new user
+    </button>
+  </div>
+</div>
