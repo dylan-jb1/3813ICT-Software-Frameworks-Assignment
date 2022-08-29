@@ -1,0 +1,90 @@
+#messages {
+    overflow-y: auto;
+}
+
+#groupNav {
+    height: 80px;
+    width:100%;
+    background-color: rgb(20, 20, 20);
+}
+
+#groupNav #logo {
+    width: 200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: large;
+}
+
+#contentChannels {
+    background-color: rgb(31, 31, 31);
+    width: 200px;
+    color:white;
+    align-items: center;
+    padding-top: 5px;
+}
+
+#contentChannels a {
+    background-color: transparent;
+    border-color: inherit;
+    color: rgb(94, 94, 94);
+}
+
+#contentChannels a.active {
+    color: white;
+    background-color: rgb(70, 70, 70);
+}
+
+#contentChannels a:hover:not(.active) {
+    background-color: rgb(50, 50, 50);
+    color: white;
+}
+
+#groupViewComponent {
+    height: 100vh;
+}
+
+#groupView {
+    background-color: rgb(52, 52, 52);
+}
+
+#messages li {
+    background-color: transparent;
+    color: white;
+}
+
+#messages #messageAuthor {
+    font-weight: bold;
+    color:green;
+}
+
+#logoutButton {
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    height:80px;
+    width:80px;
+}
+
+.group-view-item {
+    background-color: rgb(40, 40, 40);
+    color: white;
+    width:120px;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+}
+
+.group-view-item.active {
+    background-color: rgb(108, 108, 108);
+    border-color: white;
+}
+
+.group-view-item:hover:not(.active) {
+    background-color: rgb(46, 46, 46);
+}
+
+.group-view-item:hover {
+    cursor:pointer;
+}
