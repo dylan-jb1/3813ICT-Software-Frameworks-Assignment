@@ -43,6 +43,49 @@ export class SettingsComponent implements OnInit {
 
   ngOnInit(): void {}
 
+  returnToGroups() {
+    this.router.navigate(['/groups'])
+  }
+
+  deleteUser(user: any) {
+    const userIndex = this.users.map((thisUser: any) => {return thisUser.username}).indexOf(user.username);
+    if (userIndex != -1) {
+      this.users.splice(userIndex,1);
+
+      localStorage.setItem('userJson', JSON.stringify({users: this.users}))
+    }
+  }
+
+  deleteChannel(channelId: any) {
+    const channelIndex = this.channels.map((thisChannel: any) => {return thisChannel.channelId}).indexOf(channelId);
+
+    if (channelIndex == -1) {
+      return
+    } else {
+      this.channels.splice(channelIndex,1);
+
+      localStorage.setItem('channelJson', JSON.stringify({channels: this.channels}))
+    }
+  }
+
+  deleteGroup(groupId: any) {
+    const groupIndex = this.groups.map((thisGroup: any) => {return thisGroup.groupId}).indexOf(groupId);
+
+    if (groupIndex == -1) {
+      return
+    } else {
+      this.groups.splice(groupIndex,1);
+
+      localStorage.setItem('groupJson', JSON.stringify({groups: this.groups}))
+    }
+  }
+
+  userExists(user: any) {
+    if (user != undefined)
+      return (this.users.map((thisUser: any) => {return thisUser.username})).includes(user.username)
+    else return null;
+  }
+
   roleRequired(role: string, group: any): boolean {
     const roles = ['super_admin', 'group_admin', 'group_assis'];
     const requiredAuth = roles.indexOf(role);
@@ -83,15 +126,17 @@ export class SettingsComponent implements OnInit {
         const channelObj = this.channels.find((thisChannel: any) => {
           return thisChannel.channelId == channel;
         });
-        return channelObj.userAccess.includes(user.username);
+        if (channelObj != null)
+          return channelObj.userAccess.includes(user.username);
       });
       return userAuthChannels;
-    } else return [];
+    }
+    return [];
   }
 
   getUser(username: string) {
     return this.users.find((user: any) => {
-      return user.username == username;
+      return (user.username == username);
     });
   }
 
@@ -115,6 +160,19 @@ export class SettingsComponent implements OnInit {
     localStorage.setItem('groupJson', JSON.stringify({ groups: this.groups }));
   }
 
+  saveChannel(channelName: string, channelId: string, groupId: string) {
+    this.channels.push({
+      channelId: channelId,
+      channelName: channelName,
+      userAccess: [],
+      messageHistory: []
+    });
+
+    this.groups.find((group: any) => {return group.groupId == groupId}).channels.push(channelId);
+
+    localStorage.setItem('channelJson', JSON.stringify({ channels: this.channels }));
+  }
+
   validNewGroup(groupId: string, groupValue: string) {
     return (
       groupId.includes(' ') ||
@@ -122,6 +180,17 @@ export class SettingsComponent implements OnInit {
       groupValue == '' ||
       this.groups.filter((group: any) => {
         return group.groupId == groupId;
+      }).length != 0
+    );
+  }
+
+  validNewChannel(channelId: string, channelValue: string) {
+    return (
+      channelId.includes(' ') ||
+      channelId == '' ||
+      channelValue == '' ||
+      this.channels.filter((channel: any) => {
+        return channel.channelId == channelId;
       }).length != 0
     );
   }
@@ -157,10 +226,22 @@ export class SettingsComponent implements OnInit {
     localStorage.setItem('groupJson', JSON.stringify({ groups: this.groups }));
   }
 
-  saveChannelChanges(username: string, makeGroupAssis: boolean | null, group: any) {
-    const changes = Object.keys(this.channelValues);
+  saveChannelChanges(channelName: string, channelId: string) {
 
-    console.log(changes);
+    const targetChannel = this.channels.find((channel: any) => {return channel.channelId == channelId})
+
+    if (targetChannel == null) {
+      return 
+    } else {
+      targetChannel.channelName = channelName;
+    }
+
+    // update channels with changes
+    localStorage.setItem('channelJson', JSON.stringify({ channels: this.channels }));
+  }
+
+  saveUserChannelChanges(username: string, makeGroupAssis: boolean | null, group: any) {
+    const changes = Object.keys(this.channelValues);
 
     for (let x = 0; x < changes.length; x++) {
       const channelObj = this.channels.find((channel: any) => {

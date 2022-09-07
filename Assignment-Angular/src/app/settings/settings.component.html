@@ -1,4 +1,7 @@
 <div id="settingsPage">
+  <button class="btn btn-primary" (click)="returnToGroups()">
+    Return to Groups
+  </button>
   <div class="modal" id="channelModal" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -12,9 +15,24 @@
           ></button>
         </div>
         <div class="modal-body">
-          <p>Use this page to edit the channels of the selected user.</p>
+          <p>Use this page to edit information about the selected channel.</p>
+
+          <div class="input-group mb-3">
+            <span class="input-group-text" id="inputGroup-sizing-default"
+              >Channel Name</span
+            >
+            <input
+              type="text"
+              #channeleditname
+              class="form-control"
+              aria-label="Sizing example input"
+              aria-describedby="inputGroup-sizing-default"
+              value="{{channelTarget.channelName}}"
+            />
+          </div>
         </div>
         <div class="modal-footer">
+          <button *ngIf="roleRequired('group_admin', null)" type="button" class="btn btn-danger" (click)="deleteChannel(channelTarget.channelId)" data-bs-dismiss="modal">Delete Channel</button>
           <button
             type="button"
             class="btn btn-secondary"
@@ -22,7 +40,7 @@
           >
             Close
           </button>
-          <button type="button" class="btn btn-primary">Save changes</button>
+          <button type="button" class="btn btn-primary" (click)="saveChannelChanges(channeleditname.value,channelTarget.channelId)" data-bs-dismiss="modal">Save changes</button>
         </div>
       </div>
     </div>
@@ -42,6 +60,43 @@
         </div>
         <div class="modal-body">
           <p>Use this page to create a new channel.</p>
+
+          <div class="input-group mb-3">
+            <span class="input-group-text" id="inputGroup-sizing-default"
+              >Channel Name</span
+            >
+            <input
+              type="text"
+              #channelname
+              class="form-control"
+              aria-label="Sizing example input"
+              aria-describedby="inputGroup-sizing-default"
+              (keyup)="
+                submitNewChannel.disabled = validNewChannel(
+                  channelid.value,
+                  channelname.value
+                )
+              "
+            />
+          </div>
+          <div class="input-group mb-3">
+            <span class="input-group-text" id="inputGroup-sizing-default"
+              >Channel Id</span
+            >
+            <input
+              type="text"
+              #channelid
+              class="form-control"
+              aria-label="Sizing example input"
+              aria-describedby="inputGroup-sizing-default"
+              (keyup)="
+                submitNewChannel.disabled = validNewChannel(
+                  channelid.value,
+                  channelname.value
+                )
+              "
+            />
+          </div>
         </div>
 
         <div class="modal-footer">
@@ -52,7 +107,15 @@
           >
             Close
           </button>
-          <button type="button" class="btn btn-primary">Save changes</button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            #submitNewChannel
+            (click)="saveChannel(channelname.value, channelid.value, groupTarget.groupId)"
+            data-bs-dismiss="modal"
+          >
+            Save changes
+          </button>
         </div>
       </div>
     </div>
@@ -85,9 +148,7 @@
                 aria-label="Checkbox for following text input"
                 (change)="setChannelValue(channel, $event)"
                 [attr.checked]="
-                  getChannels(userTarget, groupTarget).includes(
-                    channel
-                  )
+                  getChannels(userTarget, groupTarget).includes(channel)
                     ? ''
                     : null
                 "
@@ -101,8 +162,21 @@
               disabled
             />
           </div>
-          <div class="form-check" >
-            <input class="form-check-input" type="checkbox" #groupAssis value="" id="flexCheckDefault" [attr.checked]="(groupTarget.groupAssis != undefined && groupTarget.groupAssis.includes(userTarget.username)) ? '' : null" [disabled]="!roleRequired('group_admin', null)">
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              #groupAssis
+              value=""
+              id="flexCheckDefault"
+              [attr.checked]="
+                groupTarget.groupAssis != undefined &&
+                groupTarget.groupAssis.includes(userTarget.username)
+                  ? ''
+                  : null
+              "
+              [disabled]="!roleRequired('group_admin', null)"
+            />
             <label class="form-check-label" for="flexCheckDefault">
               Group Assis?
             </label>
@@ -119,7 +193,13 @@
           <button
             type="button"
             class="btn btn-primary"
-            (click)="saveChannelChanges(userTarget.username, (hasOwnProperty('groupAssis') == true) ? groupAssis.checked : null, groupTarget)"
+            (click)="
+              saveUserChannelChanges(
+                userTarget.username,
+                groupAssis.checked,
+                groupTarget
+              )
+            "
             data-bs-dismiss="modal"
           >
             Save changes
@@ -144,7 +224,7 @@
               aria-expanded="true"
               attr.aria-controls="{{ 'collapse_' + group.groupId }}"
             >
-              {{ group.groupName }} (id: {{group.groupId}})
+              {{ group.groupName }} (id: {{ group.groupId }})
             </button>
           </h2>
           <div
@@ -200,22 +280,27 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr
-                    *ngFor="let user of group.users; let i = index"
-                    data-bs-toggle="modal"
-                    data-bs-target="#userModal"
-                    (click)="userTarget = getUser(user)"
-                    (click)="groupTarget = group"
-                  >
-                    <th scope="row">{{ i + 1 }}</th>
-                    <td>{{ getUser(user).username }}</td>
-                    <td>{{ group.groupAssis.includes(user) }}</td>
-                    <td>{{ getRoles(getUser(user), group) }}</td>
-                    <td>{{ getChannels(getUser(user), group).join(', ') }}</td>
-                  </tr>
+                  <ng-container *ngFor="let user of group.users; let i = index">
+                    <tr
+                      *ngIf="userExists(getUser(user))"
+                      data-bs-toggle="modal"
+                      data-bs-target="#userModal"
+                      (click)="userTarget = getUser(user)"
+                      (click)="groupTarget = group"
+                    >
+                      <th scope="row">{{ i + 1 }}</th>
+                      <td>{{ getUser(user).username }}</td>
+                      <td>{{ group.groupAssis.includes(user) }}</td>
+                      <td>{{ getRoles(getUser(user), group) }}</td>
+                      <td>
+                        {{ getChannels(getUser(user), group).join(", ") }}
+                      </td>
+                    </tr>
+                  </ng-container>
                 </tbody>
               </table>
             </div>
+            <button *ngIf="roleRequired('group_admin', null)" type="button" class="btn btn-danger" (click)="deleteGroup(group.groupId)">Delete Group</button>
           </div>
         </div>
       </ng-container>
@@ -345,22 +430,51 @@
                 disabled
               />
             </div>
-            <div *ngIf="roleRequired('super_admin',null)">
+            <div *ngIf="roleRequired('super_admin', null)">
               <p>Use this section to edit the roles of the selected user.</p>
               <div class="form-check">
-                <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1" value="super_admin" [checked]="(userTarget.roles && userTarget.roles.includes('super_admin'))">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="flexRadioDefault"
+                  id="flexRadioDefault1"
+                  value="super_admin"
+                  [checked]="
+                    userTarget.roles && userTarget.roles.includes('super_admin')
+                  "
+                />
                 <label class="form-check-label" for="flexRadioDefault1">
                   Super Admin
                 </label>
               </div>
               <div class="form-check">
-                <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" value="group_admin" [checked]="(userTarget.roles && userTarget.roles.includes('group_admin'))">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="flexRadioDefault"
+                  id="flexRadioDefault2"
+                  value="group_admin"
+                  [checked]="
+                    userTarget.roles && userTarget.roles.includes('group_admin')
+                  "
+                />
                 <label class="form-check-label" for="flexRadioDefault2">
                   Group Admin
                 </label>
               </div>
               <div class="form-check">
-                <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" value="" [checked]="(!userTarget.roles || ((!userTarget.roles.includes('group_admin')) && (!userTarget.roles.includes('group_admin'))))">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="flexRadioDefault"
+                  id="flexRadioDefault2"
+                  value=""
+                  [checked]="
+                    !userTarget.roles ||
+                    (!userTarget.roles.includes('group_admin') &&
+                      !userTarget.roles.includes('group_admin'))
+                  "
+                />
                 <label class="form-check-label" for="flexRadioDefault2">
                   None
                 </label>
@@ -368,6 +482,15 @@
             </div>
           </div>
           <div class="modal-footer">
+            <button
+              *ngIf="roleRequired('super_admin', null)"
+              type="button"
+              class="btn btn-danger"
+              data-bs-dismiss="modal"
+              (click)="deleteUser(userTarget)"
+            >
+              Delete
+            </button>
             <button
               type="button"
               class="btn btn-secondary"
@@ -378,7 +501,10 @@
             <button
               type="button"
               class="btn btn-primary"
-              (click)="saveGroupChanges(userTarget.username); saveAdminChanges(userTarget.username)"
+              (click)="
+                saveGroupChanges(userTarget.username);
+                saveAdminChanges(userTarget.username)
+              "
               data-bs-dismiss="modal"
             >
               Save changes
@@ -430,25 +556,61 @@
             <p>Use this page to create a new user.</p>
 
             <div class="input-group mb-3">
-              <span class="input-group-text" id="inputGroup-sizing-default">Username</span>
-              <input type="text" #usernameCreate class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" 
-              (keyup)="
-                submitUser.disabled = !validUser(usernameCreate.value, emailCreate.value, passwordCreate.value)
-              ">
+              <span class="input-group-text" id="inputGroup-sizing-default"
+                >Username</span
+              >
+              <input
+                type="text"
+                #usernameCreate
+                class="form-control"
+                aria-label="Sizing example input"
+                aria-describedby="inputGroup-sizing-default"
+                (keyup)="
+                  submitUser.disabled = !validUser(
+                    usernameCreate.value,
+                    emailCreate.value,
+                    passwordCreate.value
+                  )
+                "
+              />
             </div>
             <div class="input-group mb-3">
-              <span class="input-group-text" id="inputGroup-sizing-default">Email</span>
-              <input type="text" #emailCreate class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" 
-              (keyup)="
-              submitUser.disabled = !validUser(usernameCreate.value, emailCreate.value, passwordCreate.value)
-              ">
+              <span class="input-group-text" id="inputGroup-sizing-default"
+                >Email</span
+              >
+              <input
+                type="text"
+                #emailCreate
+                class="form-control"
+                aria-label="Sizing example input"
+                aria-describedby="inputGroup-sizing-default"
+                (keyup)="
+                  submitUser.disabled = !validUser(
+                    usernameCreate.value,
+                    emailCreate.value,
+                    passwordCreate.value
+                  )
+                "
+              />
             </div>
             <div class="input-group mb-3">
-              <span class="input-group-text" id="inputGroup-sizing-default">Password</span>
-              <input type="text" #passwordCreate class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" 
-              (keyup)="
-              submitUser.disabled = !validUser(usernameCreate.value, emailCreate.value, passwordCreate.value)
-              ">
+              <span class="input-group-text" id="inputGroup-sizing-default"
+                >Password</span
+              >
+              <input
+                type="text"
+                #passwordCreate
+                class="form-control"
+                aria-label="Sizing example input"
+                aria-describedby="inputGroup-sizing-default"
+                (keyup)="
+                  submitUser.disabled = !validUser(
+                    usernameCreate.value,
+                    emailCreate.value,
+                    passwordCreate.value
+                  )
+                "
+              />
             </div>
           </div>
           <div class="modal-footer">
@@ -459,8 +621,22 @@
             >
               Close
             </button>
-            <button type="button" class="btn btn-primary" #submitUser (click)="createNewUser(usernameCreate.value, emailCreate.value, passwordCreate.value)" disabled
-            data-bs-dismiss="modal">Save changes</button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              #submitUser
+              (click)="
+                createNewUser(
+                  usernameCreate.value,
+                  emailCreate.value,
+                  passwordCreate.value
+                )
+              "
+              disabled
+              data-bs-dismiss="modal"
+            >
+              Save changes
+            </button>
           </div>
         </div>
       </div>
