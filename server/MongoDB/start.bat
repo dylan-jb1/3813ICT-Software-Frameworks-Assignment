@@ -1,0 +1,1 @@
+mongod --dbpath A:\Users\shado\Documents\GitHub\3813ICT-Software-Frameworks-Assignment\server\MongoDB\data

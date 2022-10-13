@@ -19,16 +19,25 @@ export class LoginComponent implements OnInit {
   }
 
   loginUser(): void {
-    const userJsonString = localStorage.getItem('userJson');
-    let userJsonObj;
-    if (userJsonString != null)
-      userJsonObj = JSON.parse(userJsonString);
-    if (userJsonObj.users.some((user: any) => {{if (user.username == this.username && user.password == this.password) {this.user = user; return true} else return false}})) {
-      localStorage.setItem('user',JSON.stringify(this.user));
-      this.router.navigate(["/groups"]);
-    } else {
-      this.errorMsg = "Invalid credentials. Please try again.";
-    }
+    fetch("http://localhost:4000/login", {
+      method: "POST",
+      headers: {
+        "Content-Type":"application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify({
+        username: this.username,
+        password: this.password
+      })
+    }).then(data => data.json())
+      .then(data => {
+        if (data.token) {
+          localStorage.setItem('token',data.token);
+          this.router.navigate(["/groups"]);
+        } else {
+          this.errorMsg = "Invalid credentials. Please try again.";
+        }
+      }).catch(e => this.errorMsg = e.toString());
   }
 
 }

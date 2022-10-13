@@ -27,12 +27,12 @@
               class="form-control"
               aria-label="Sizing example input"
               aria-describedby="inputGroup-sizing-default"
-              value="{{channelTarget.channelName}}"
+              value="{{channelTarget.name}}"
             />
           </div>
         </div>
         <div class="modal-footer">
-          <button *ngIf="roleRequired('group_admin', null)" type="button" class="btn btn-danger" (click)="deleteChannel(channelTarget.channelId)" data-bs-dismiss="modal">Delete Channel</button>
+          <button *ngIf="roleRequired('group_admin', null)" type="button" class="btn btn-danger" (click)="deleteChannel(channelTarget._id)" data-bs-dismiss="modal">Delete Channel</button>
           <button
             type="button"
             class="btn btn-secondary"
@@ -40,7 +40,7 @@
           >
             Close
           </button>
-          <button type="button" class="btn btn-primary" (click)="saveChannelChanges(channeleditname.value,channelTarget.channelId)" data-bs-dismiss="modal">Save changes</button>
+          <button type="button" class="btn btn-primary" (click)="updateChannel(channelTarget._id,{},{},{'name':channeleditname.value})" data-bs-dismiss="modal">Save changes</button>
         </div>
       </div>
     </div>
@@ -72,28 +72,7 @@
               aria-label="Sizing example input"
               aria-describedby="inputGroup-sizing-default"
               (keyup)="
-                submitNewChannel.disabled = validNewChannel(
-                  channelid.value,
-                  channelname.value
-                )
-              "
-            />
-          </div>
-          <div class="input-group mb-3">
-            <span class="input-group-text" id="inputGroup-sizing-default"
-              >Channel Id</span
-            >
-            <input
-              type="text"
-              #channelid
-              class="form-control"
-              aria-label="Sizing example input"
-              aria-describedby="inputGroup-sizing-default"
-              (keyup)="
-                submitNewChannel.disabled = validNewChannel(
-                  channelid.value,
-                  channelname.value
-                )
+                submitNewChannel.disabled = channelname.value.trim() == ''
               "
             />
           </div>
@@ -111,7 +90,7 @@
             type="button"
             class="btn btn-primary"
             #submitNewChannel
-            (click)="saveChannel(channelname.value, channelid.value, groupTarget.groupId)"
+            (click)="createChannel(channelname.value, groupTarget._id)"
             data-bs-dismiss="modal"
           >
             Save changes
@@ -147,11 +126,7 @@
                 value=""
                 aria-label="Checkbox for following text input"
                 (change)="setChannelValue(channel, $event)"
-                [attr.checked]="
-                  getChannels(userTarget, groupTarget).includes(channel)
-                    ? ''
-                    : null
-                "
+                [checked]="getChannels(userTarget, groupTarget).includes(channel)"
               />
             </div>
             <input
@@ -169,12 +144,7 @@
               #groupAssis
               value=""
               id="flexCheckDefault"
-              [attr.checked]="
-                groupTarget.groupAssis != undefined &&
-                groupTarget.groupAssis.includes(userTarget.username)
-                  ? ''
-                  : null
-              "
+              [checked]="groupTarget.groupAssis != undefined && groupTarget.groupAssis.includes(userTarget._id)"
               [disabled]="!roleRequired('group_admin', null)"
             />
             <label class="form-check-label" for="flexCheckDefault">
@@ -194,11 +164,19 @@
             type="button"
             class="btn btn-primary"
             (click)="
-              saveUserChannelChanges(
-                userTarget.username,
-                groupAssis.checked,
-                groupTarget
-              )
+              updateUser(
+                userTarget._id,
+                {},
+                {},
+                {}
+              );
+              updateGroup(
+                groupTarget._id,
+                {'groupAssis': groupAssis.checked ? userTarget._id : undefined},
+                {'groupAssis': groupAssis.checked ? undefined : userTarget._id},
+                {}
+              );
+              updateChannelValues(userTarget);
             "
             data-bs-dismiss="modal"
           >
@@ -215,22 +193,22 @@
     <div class="accordion" id="accordionExample">
       <ng-container *ngFor="let group of groups">
         <div class="accordion-item" *ngIf="roleRequired('group_assis', group)">
-          <h2 class="accordion-header" id="{{ 'header_' + group.groupId }}">
+          <h2 class="accordion-header" id="{{ 'header_' + group._id }}">
             <button
               class="accordion-button collapsed"
               type="button"
               data-bs-toggle="collapse"
-              attr.data-bs-target="{{ '#collapse_' + group.groupId }}"
+              attr.data-bs-target="{{ '#collapse_' + group._id }}"
               aria-expanded="true"
-              attr.aria-controls="{{ 'collapse_' + group.groupId }}"
+              attr.aria-controls="{{ 'collapse_' + group._id }}"
             >
-              {{ group.groupName }} (id: {{ group.groupId }})
+              {{ group.name }} (id: {{ group._id }})
             </button>
           </h2>
           <div
-            id="{{ 'collapse_' + group.groupId }}"
+            id="{{ 'collapse_' + group._id }}"
             class="accordion-collapse collapse"
-            attr.aria-labelledby="{{ 'header_' + group.groupId }}"
+            attr.aria-labelledby="{{ 'header_' + group._id }}"
             data-bs-parent="#accordionExample"
           >
             <div class="accordion-body">
@@ -254,8 +232,8 @@
                     (click)="channelTarget = channel"
                   >
                     <th scope="row">{{ i + 1 }}</th>
-                    <td>{{ channel.channelId }}</td>
-                    <td>{{ channel.channelName }}</td>
+                    <td>{{ channel._id }}</td>
+                    <td>{{ channel.name }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -282,7 +260,7 @@
                 <tbody>
                   <ng-container *ngFor="let user of group.users; let i = index">
                     <tr
-                      *ngIf="userExists(getUser(user))"
+                      *ngIf="getUser(user)"
                       data-bs-toggle="modal"
                       data-bs-target="#userModal"
                       (click)="userTarget = getUser(user)"
@@ -300,7 +278,7 @@
                 </tbody>
               </table>
             </div>
-            <button *ngIf="roleRequired('group_admin', null)" type="button" class="btn btn-danger" (click)="deleteGroup(group.groupId)">Delete Group</button>
+            <button *ngIf="roleRequired('group_admin', null)" type="button" class="btn btn-danger" (click)="deleteGroup(group._id)">Delete Group</button>
           </div>
         </div>
       </ng-container>
@@ -332,28 +310,7 @@
                 aria-label="Sizing example input"
                 aria-describedby="inputGroup-sizing-default"
                 (keyup)="
-                  submitGroup.disabled = validNewGroup(
-                    groupid.value,
-                    groupname.value
-                  )
-                "
-              />
-            </div>
-            <div class="input-group mb-3">
-              <span class="input-group-text" id="inputGroup-sizing-default"
-                >Group Id</span
-              >
-              <input
-                type="text"
-                #groupid
-                class="form-control"
-                aria-label="Sizing example input"
-                aria-describedby="inputGroup-sizing-default"
-                (keyup)="
-                  submitGroup.disabled = validNewGroup(
-                    groupid.value,
-                    groupname.value
-                  )
+                  submitGroup.disabled = groupname.value.trim() == ''
                 "
               />
             </div>
@@ -370,7 +327,7 @@
               type="button"
               #submitGroup
               class="btn btn-primary"
-              (click)="saveGroup(groupname.value, groupid.value)"
+              (click)="createGroup(groupname.value)"
               data-bs-dismiss="modal"
               disabled
             >
@@ -416,9 +373,9 @@
                   type="checkbox"
                   value=""
                   aria-label="Checkbox for following text input"
-                  (change)="setGroupValue(group.groupId, $event)"
+                  (change)="setGroupValue(group._id, $event)"
                   [attr.checked]="
-                    userGroups(userTarget).includes(group.groupId) ? '' : null
+                    userGroups(userTarget).includes(group._id) ? '' : null
                   "
                 />
               </div>
@@ -426,7 +383,7 @@
                 type="text"
                 class="form-control"
                 aria-label="Text input with checkbox"
-                value="{{ group.groupId }}"
+                value="{{ group._id }}"
                 disabled
               />
             </div>
@@ -434,14 +391,14 @@
               <p>Use this section to edit the roles of the selected user.</p>
               <div class="form-check">
                 <input
+                  [(ngModel)]="formVal"
+                  #ctrl="ngModel"
                   class="form-check-input"
                   type="radio"
                   name="flexRadioDefault"
                   id="flexRadioDefault1"
-                  value="super_admin"
-                  [checked]="
-                    userTarget.roles && userTarget.roles.includes('super_admin')
-                  "
+                  [value]="2"
+                  [checked]="userTarget.role == 2"
                 />
                 <label class="form-check-label" for="flexRadioDefault1">
                   Super Admin
@@ -449,14 +406,14 @@
               </div>
               <div class="form-check">
                 <input
+                  [(ngModel)]="formVal"
+                  #ctrl="ngModel"
                   class="form-check-input"
                   type="radio"
                   name="flexRadioDefault"
                   id="flexRadioDefault2"
-                  value="group_admin"
-                  [checked]="
-                    userTarget.roles && userTarget.roles.includes('group_admin')
-                  "
+                  [value]="1"
+                  [checked]="userTarget.role == 1"
                 />
                 <label class="form-check-label" for="flexRadioDefault2">
                   Group Admin
@@ -464,16 +421,14 @@
               </div>
               <div class="form-check">
                 <input
+                  [(ngModel)]="formVal"
+                  #ctrl="ngModel"
                   class="form-check-input"
                   type="radio"
                   name="flexRadioDefault"
                   id="flexRadioDefault2"
-                  value=""
-                  [checked]="
-                    !userTarget.roles ||
-                    (!userTarget.roles.includes('group_admin') &&
-                      !userTarget.roles.includes('group_admin'))
-                  "
+                  [value]="0"
+                  [checked]="userTarget.role == 0"
                 />
                 <label class="form-check-label" for="flexRadioDefault2">
                   None
@@ -502,8 +457,8 @@
               type="button"
               class="btn btn-primary"
               (click)="
-                saveGroupChanges(userTarget.username);
-                saveAdminChanges(userTarget.username)
+                updateUser(userTarget._id,{},{},{'role':formVal});
+                updateGroupValues(userTarget);
               "
               data-bs-dismiss="modal"
             >
@@ -529,13 +484,13 @@
           *ngFor="let user of users; let i = index"
           data-bs-toggle="modal"
           data-bs-target="#userGroupModal"
-          (click)="userTarget = user"
+          (click)="userTarget = user;formVal=user.role"
         >
           <th scope="row">{{ i + 1 }}</th>
           <td>{{ user.username }}</td>
           <td>{{ user.email }}</td>
           <td>{{ userGroups(user).join(", ") }}</td>
-          <td>{{ user.roles.join(", ") }}</td>
+          <td>{{ ["","group_admin","super_admin"][user.role] }}</td>
         </tr>
       </tbody>
     </table>

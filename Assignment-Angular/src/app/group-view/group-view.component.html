@@ -4,7 +4,7 @@
             3813ICT
         </div>
         <ul class="list-group list-group-flush list-group-horizontal flex-grow-1">
-            <li *ngFor="let group of groups" class="list-group-item group-view-item" [class.active]="activeGroup.groupId==group.groupId" (click)="updateGroup(group)">{{group.groupName}}</li>
+            <li *ngFor="let group of groups" class="list-group-item group-view-item" [class.active]="activeGroup['_id']==group['_id']" (click)="updateGroup(group)">{{group.name}}</li>
         </ul>
         <div id="menuButtons">
             <div id="logoutButton">
@@ -18,17 +18,17 @@
     <div id="groupView" class="d-flex flex-grow-1">
         <div id="contentChannels" >
             <div class="list-group list-group-flush">
-                <a *ngFor="let channel of channels"  class="list-group-item group-view-item" [class.active]="activeChannel.channelId==channel.channelId" (click)="updateChannel(channel)">{{channel.channelName}}</a>
+                <a *ngFor="let channel of groupChannels"  class="list-group-item group-view-item" [class.active]="activeChannel['_id']==channel['_id']" (click)="updateChannel(channel)">{{channel.name}}</a>
             </div>
         </div>
         <div id="channelView" class="d-flex flex-column justify-content-end flex-grow-1">
             <ul id="messages" class="list-group list-group-flush" >
                 <li *ngFor="let message of activeChannel.messageHistory" class="list-group-item">
                     <div id="messageAuthor">
-                        {{message.messageAuthor}}
+                        {{userdata[message.author]? userdata[message.author].username : "loading username..."}}
                     </div>
                     <div id="messageContent">
-                        {{message.messageContent}}
+                        {{message.content}}
                     </div>
                 </li>
             </ul>

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 
 @Component({
@@ -17,28 +17,95 @@ export class SettingsComponent implements OnInit {
   channelValues: any = {};
   adminVal: string = '';
 
+  formVal: number = 0;
+
   userTarget: any = {};
   channelTarget: any = {};
   groupTarget: any = {};
 
-  constructor(private router: Router) {
-    const userJsonString = localStorage.getItem('userJson');
-    if (userJsonString != null) this.users = JSON.parse(userJsonString).users;
+  constructor(private router: Router, private ref:ChangeDetectorRef) {
+    this.getUserList();
+    this.getChannelList();
+    this.getGroupList();
 
-    const channelJsonString = localStorage.getItem('channelJson');
-    if (channelJsonString != null)
-      this.channels = JSON.parse(channelJsonString).channels;
-
-    const groupJsonString = localStorage.getItem('groupJson');
-    if (groupJsonString != null)
-      this.groups = JSON.parse(groupJsonString).groups;
-
-    const currentUserJsonString = localStorage.getItem('user');
-    if (currentUserJsonString != null)
-      this.currentUser = JSON.parse(currentUserJsonString);
+    const userToken = localStorage.getItem('token');
+    if (userToken != null)
+      this.getCurrentUser();
     else {
       router.navigate(['/login']);
     }
+  }
+
+  async getCurrentUser() {
+    const userToken = localStorage.getItem('token');
+
+    fetch("http://localhost:4000/me", {
+      method: "GET",
+      headers: {
+        "Authorization": "Basic " + userToken,
+        "Content-Type": "application/json"
+      }
+    })
+      .then(data => data.json())
+      .then(data => {
+        this.currentUser = data;
+        this.ref.detectChanges();
+      })
+      .catch(e => console.log(e));
+  }
+
+  async getUserList() {
+    const userToken = localStorage.getItem('token');
+
+    fetch("http://localhost:4000/users", {
+      method: "GET",
+      headers: {
+        "Authorization": "Basic " + userToken,
+        "Content-Type": "application/json"
+      }
+    })
+      .then(data => data.json())
+      .then(data => {
+        this.users = data;
+        this.ref.detectChanges();
+      })
+      .catch(e => console.log(e));
+  }
+
+  async getChannelList() {
+    const userToken = localStorage.getItem('token');
+
+    fetch("http://localhost:4000/channels", {
+      method: "GET",
+      headers: {
+        "Authorization": "Basic " + userToken,
+        "Content-Type": "application/json"
+      }
+    })
+      .then(data => data.json())
+      .then(data => {
+        this.channels = data;
+        this.ref.detectChanges();
+      })
+      .catch(e => console.log(e));
+  }
+
+  async getGroupList() {
+    const userToken = localStorage.getItem('token');
+
+    fetch("http://localhost:4000/groups", {
+      method: "GET",
+      headers: {
+        "Authorization": "Basic " + userToken,
+        "Content-Type": "application/json"
+      }
+    })
+      .then(data => data.json())
+      .then(data => {
+        this.groups = data;
+        this.ref.detectChanges();
+      })
+      .catch(e => console.log(e));
   }
 
   ngOnInit(): void {}
@@ -47,72 +114,80 @@ export class SettingsComponent implements OnInit {
     this.router.navigate(['/groups'])
   }
 
-  deleteUser(user: any) {
-    const userIndex = this.users.map((thisUser: any) => {return thisUser.username}).indexOf(user.username);
-    if (userIndex != -1) {
-      this.users.splice(userIndex,1);
-
-      localStorage.setItem('userJson', JSON.stringify({users: this.users}))
-    }
+  async deleteUser(user: any) {
+    const userToken = localStorage.getItem('token');
+    await fetch("http://localhost:4000/users/"+user['_id'], {
+      method: "DELETE",
+      headers: {
+        Authorization: "Basic " + userToken,
+        "Content-Type": "application/json"
+      }
+    })
   }
 
-  deleteChannel(channelId: any) {
-    const channelIndex = this.channels.map((thisChannel: any) => {return thisChannel.channelId}).indexOf(channelId);
+  async deleteChannel(channel: any) {
+    const userToken = localStorage.getItem('token');
+    await fetch("http://localhost:4000/channels/"+channel['_id'], {
+      method: "DELETE",
+      headers: {
+        Authorization: "Basic " + userToken,
+        "Content-Type": "application/json"
+      }
+    })
+  }
 
-    if (channelIndex == -1) {
-      return
+  async deleteGroup(group: any) {
+    const userToken = localStorage.getItem('token');
+    await fetch("http://localhost:4000/groups/"+group['_id'], {
+      method: "DELETE",
+      headers: {
+        Authorization: "Basic " + userToken,
+        "Content-Type": "application/json"
+      }
+    })
+  }
+
+  async userExists(user: any) {
+    const userToken = localStorage.getItem('token');
+    const userFound = await (await fetch("http://localhost:4000/user?user="+user["_id"], {
+      method: "GET",
+      headers: {
+        Authorization: "Basic " + userToken,
+        "Content-Type": "application/json"
+      }
+    })).json()
+
+    if (userFound == null) {
+      return null
     } else {
-      this.channels.splice(channelIndex,1);
-
-      localStorage.setItem('channelJson', JSON.stringify({channels: this.channels}))
+      return userFound.username;
     }
-  }
-
-  deleteGroup(groupId: any) {
-    const groupIndex = this.groups.map((thisGroup: any) => {return thisGroup.groupId}).indexOf(groupId);
-
-    if (groupIndex == -1) {
-      return
-    } else {
-      this.groups.splice(groupIndex,1);
-
-      localStorage.setItem('groupJson', JSON.stringify({groups: this.groups}))
-    }
-  }
-
-  userExists(user: any) {
-    if (user != undefined)
-      return (this.users.map((thisUser: any) => {return thisUser.username})).includes(user.username)
-    else return null;
   }
 
   roleRequired(role: string, group: any): boolean {
     const roles = ['super_admin', 'group_admin', 'group_assis'];
     const requiredAuth = roles.indexOf(role);
-    let maxUserAuth =
-      group != null && group.groupAssis.includes(this.currentUser.username)
-        ? 2
-        : 3;
-    for (let x = 0; x < this.currentUser.roles.length; x++) {
-      const roleIndex = roles.indexOf(this.currentUser.roles[x]);
-      if (maxUserAuth > roleIndex && roleIndex != -1) {
-        maxUserAuth = roleIndex;
-      }
+    const userAuth = this.currentUser.role;
+
+    if (requiredAuth ==2 && group != null && group.groupAssis && group.groupAssis.includes(this.currentUser["_id"])) {
+      return true;
+    } else if (requiredAuth >= 1 && this.currentUser.role == 1) {
+      return true;
+    } else if (requiredAuth >= 0 && this.currentUser.role == 2) {
+      return true;
     }
 
-    return maxUserAuth <= requiredAuth;
+    return false;
   }
 
   filter(channels: any, group: any) {
-    return channels.filter((channel: any) =>
-      group.channels.includes(channel.channelId)
-    );
+    return channels.filter((channel: any) => group.channels.includes(channel['_id']));
   }
 
   getRoles(user: any, group: any) {
-    let roleArr = [];
-    if (user.roles.length > 0) roleArr.push(user.roles.join(', '));
-    if (group.groupAssis.includes(user.username))
+    const roles = ["","group_admin", "super_admin"];
+    let roleArr = user.role> 0 ?[roles[user.role]]:[];
+    if (group.groupAssis.includes(user["_id"]))
       roleArr.push('group_assis (This group)');
 
     return roleArr.join(', ');
@@ -124,173 +199,202 @@ export class SettingsComponent implements OnInit {
       const userAuthChannels = group.channels.filter((channel: any) => {
         // find the channel object from the channelId;
         const channelObj = this.channels.find((thisChannel: any) => {
-          return thisChannel.channelId == channel;
+          return thisChannel['_id'] == channel;
         });
         if (channelObj != null)
-          return channelObj.userAccess.includes(user.username);
+          return channelObj.userAccess.includes(user._id);
       });
       return userAuthChannels;
     }
     return [];
   }
 
-  getUser(username: string) {
+  async updateData() {
+    this.getUserList();
+    this.getChannelList();
+    this.getGroupList();
+  }
+
+  getUser(userId: string) {
     return this.users.find((user: any) => {
-      return (user.username == username);
+      return (user._id == userId);
     });
   }
 
   userGroups(user: any) {
     return this.groups
       .filter((group: any) => {
-        return group.users.includes(user.username);
+        return group.users.includes(user._id);
       })
-      .map((group: any) => group.groupId);
+      .map((group: any) => group['_id']);
   }
 
-  saveGroup(groupName: string, groupId: string) {
-    this.groups.push({
-      groupId: groupId,
-      groupName: groupName,
-      channels: [],
-      users: [],
-      groupAssis: [],
-    });
-
-    localStorage.setItem('groupJson', JSON.stringify({ groups: this.groups }));
+  async createGroup(groupName: string) {
+    const userToken = localStorage.getItem('token');
+    var newObj;
+    await fetch('http://localhost:4000/groups', {
+      method: "POST",
+      headers: {
+        "Content-Type":"application/json",
+        "Authorization": "Basic " + userToken
+      },
+      body: JSON.stringify({
+        users: [],
+        channels: [],
+        groupAssis: [],
+        name: groupName
+      })
+    }).then(data => data.json())
+    .then(groupObject => {
+      newObj = groupObject;
+    }).catch(e => {
+      console.log(e);
+    })
+    this.updateData();
+    return newObj;
   }
 
-  saveChannel(channelName: string, channelId: string, groupId: string) {
-    this.channels.push({
-      channelId: channelId,
-      channelName: channelName,
-      userAccess: [],
-      messageHistory: []
-    });
-
-    this.groups.find((group: any) => {return group.groupId == groupId}).channels.push(channelId);
-
-    localStorage.setItem('channelJson', JSON.stringify({ channels: this.channels }));
+  async createChannel(channelName: string, groupId: string) {
+    const userToken = localStorage.getItem('token');
+    var newObj;
+    await fetch('http://localhost:4000/channels', {
+      method: "POST",
+      headers: {
+        "Content-Type":"application/json",
+        "Authorization": "Basic " + userToken
+      },
+      body: JSON.stringify({
+        userAccess: [],
+        messageHistory: [],
+        name: channelName
+      })
+    }).then(data => data.json())
+    .then(async channelObj => {
+      newObj = channelObj;
+      await this.updateGroup(groupId, {channels: channelObj.channelId}, {}, {})
+    }).catch(e => {
+      console.log(e);
+    })
+    this.updateData();
+    return newObj;
   }
 
-  validNewGroup(groupId: string, groupValue: string) {
-    return (
-      groupId.includes(' ') ||
-      groupId == '' ||
-      groupValue == '' ||
-      this.groups.filter((group: any) => {
-        return group.groupId == groupId;
-      }).length != 0
-    );
+  async createNewUser(username: string, email: string, password: string) {
+    const userToken = localStorage.getItem('token');
+    var newObj;
+    await fetch('http://localhost:4000/users', {
+      method: "POST",
+      headers: {
+        "Content-Type":"application/json",
+        "Authorization": "Basic " + userToken
+      },
+      body: JSON.stringify({
+        username: username,
+        email: email,
+        password: password
+      })
+    }).then(data => data.json())
+    .then(userObj => {
+      newObj = userObj;
+    }).catch(e => {
+      console.log(e);
+    })
+    this.updateData();
+    return newObj;
   }
 
-  validNewChannel(channelId: string, channelValue: string) {
-    return (
-      channelId.includes(' ') ||
-      channelId == '' ||
-      channelValue == '' ||
-      this.channels.filter((channel: any) => {
-        return channel.channelId == channelId;
-      }).length != 0
-    );
-  }
-
-  saveGroupChanges(username: string) {
-    const changes = Object.keys(this.groupValues);
-
-    for (let x = 0; x < changes.length; x++) {
-      const groupObj = this.groups.find((group: any) => {
-        return group.groupId == changes[x];
-      });
-      if (this.groupValues[changes[x]] == false) {
-        // if user is in this group
-        if (groupObj.users.includes(username)) {
-          // remove them from group
-          groupObj.users.splice(groupObj.users.indexOf(username), 1);
-        } else {
-          // dont need to do anything
-        }
-      } /* if true */ else {
-        // if user already in this group
-        if (groupObj.users.includes(username)) {
-          // dont need to do anything
-        } else {
-          // add user to group
-          groupObj.users.push(username);
-        }
+  async updateGroup(groupId: string, addData: any, removeData: any, updateData: any) {
+    const userToken = localStorage.getItem('token');
+    await fetch("http://localhost:4000/groups/"+groupId, {
+      method: "PATCH",
+      headers: {
+        "Content-Type":"application/json",
+        "Authorization": "Basic " + userToken
+      },
+      body: JSON.stringify({
+        add: addData,
+        remove: removeData,
+        update: updateData
+      })
+    }).then(response => {
+      if (response.ok) {
+        console.log("Group information changed successfully.");
+      } else {
+        console.log(response.status);
       }
-    }
+    })
+    this.updateData();
+  }
 
+  async updateChannel(channelId: string, addData: any, removeData: any, updateData: any) {
+    const userToken = localStorage.getItem('token');
+    await fetch("http://localhost:4000/channels/"+channelId, {
+      method: "PATCH",
+      headers: {
+        "Content-Type":"application/json",
+        "Authorization": "Basic " + userToken
+      },
+      body: JSON.stringify({
+        add: addData,
+        remove: removeData,
+        update: updateData
+      })
+    }).then(response => {
+      if (response.ok) {
+        console.log("Channel information changed successfully.");
+      } else {
+        console.log(response.status);
+      }
+    })
+    this.updateData();
+  }
+
+  async updateUser(userId: string, addData: any, removeData: any, updateData: any) {
+    console.log(updateData)
+    const userToken = localStorage.getItem('token');
+    await fetch("http://localhost:4000/users/"+userId, {
+      method: "PATCH",
+      headers: {
+        "Content-Type":"application/json",
+        "Authorization": "Basic " + userToken
+      },
+      body: JSON.stringify({
+        add: addData,
+        remove: removeData,
+        update: updateData
+      })
+    }).then(response => {
+      if (response.ok) {
+        console.log("User information changed successfully.");
+      } else {
+        console.log(response.status);
+      }
+    })
+    this.updateData();
+  }
+
+  updateGroupValues(userTarget: any) {
+    Object.keys(this.groupValues).forEach((key) => {
+      this.updateGroup(
+        key,
+        {'users': this.groupValues[key] ? userTarget._id : undefined},
+        {'users': this.groupValues[key] ? undefined : userTarget._id},
+        {}
+      )
+    });
     this.groupValues = {};
-    // update groups with changes
-    localStorage.setItem('groupJson', JSON.stringify({ groups: this.groups }));
   }
 
-  saveChannelChanges(channelName: string, channelId: string) {
-
-    const targetChannel = this.channels.find((channel: any) => {return channel.channelId == channelId})
-
-    if (targetChannel == null) {
-      return 
-    } else {
-      targetChannel.channelName = channelName;
-    }
-
-    // update channels with changes
-    localStorage.setItem('channelJson', JSON.stringify({ channels: this.channels }));
-  }
-
-  saveUserChannelChanges(username: string, makeGroupAssis: boolean | null, group: any) {
-    const changes = Object.keys(this.channelValues);
-
-    for (let x = 0; x < changes.length; x++) {
-      const channelObj = this.channels.find((channel: any) => {
-        return channel.channelId == changes[x];
-      });
-      if (this.channelValues[changes[x]] == false) {
-        // if user is in this channel
-        if (channelObj.userAccess.includes(username)) {
-          // remove them from channel
-          channelObj.userAccess.splice(
-            channelObj.userAccess.indexOf(username),
-            1
-          );
-        } else {
-          // dont need to do anything
-        }
-      } /* if true */ else {
-        // if user already in this channel
-        if (channelObj.userAccess.includes(username)) {
-          // dont need to do anything
-        } else {
-          // add user to channel
-          channelObj.userAccess.push(username);
-        }
-      }
-    }
-
-    if (group != null && makeGroupAssis != null) {
-      const groupObj = this.groups.find((thisGroup: any) => {return thisGroup.groupId == group.groupId})
-      if (makeGroupAssis) {
-        if (!groupObj.groupAssis.includes(username))
-          groupObj.groupAssis.push(username);
-      }
-      else {
-        if (groupObj.groupAssis.includes(username))
-          groupObj.groupAssis.splice(groupObj.groupAssis.indexOf(username),1);
-      }
-    }
-
+  updateChannelValues(userTarget: any) {
+    Object.keys(this.channelValues).forEach((key) => {
+      this.updateChannel(
+        key,
+        {'userAccess': this.channelValues[key] ? userTarget._id : undefined},
+        {'userAccess': this.channelValues[key] ? undefined : userTarget._id},
+        {}
+      )
+    });
     this.channelValues = {};
-    // update groups with changes
-    localStorage.setItem(
-      'channelJson',
-      JSON.stringify({ channels: this.channels })
-    );
-    localStorage.setItem(
-      'groupJson',
-      JSON.stringify({ groups: this.groups })
-    );
   }
 
   setGroupValue(groupId: string, event: any) {
@@ -299,34 +403,6 @@ export class SettingsComponent implements OnInit {
 
   setChannelValue(channelId: string, event: any) {
     this.channelValues[channelId] = event.target.checked;
-  }
-
-  saveAdminChanges(username: string) {
-    const radioList: any = document.querySelector('input[name="flexRadioDefault"]:checked');
-    if (radioList != null) {
-      this.adminVal = radioList.value
-    } else {
-      this.adminVal = '';
-    }
-
-    this.users.find((user: any) => {return user.username == username}).roles = this.adminVal == '' ? [] : [this.adminVal];
-    
-    // update users with changes
-    localStorage.setItem(
-      'userJson',
-      JSON.stringify({ users: this.users })
-    );
-  }
-
-  createNewUser(username: string, email: string, password: string) {
-    this.users.push({
-      username: username,
-      email: email,
-      password: password,
-      roles: []
-    })
-
-    localStorage.setItem('userJson', JSON.stringify({users: this.users}))
   }
 
   validUser(username: string, email: string, password: string): boolean {

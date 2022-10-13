@@ -55,8 +55,8 @@ The users data structure is an array of user objects, which contains information
 The groups data structure is an array of group objects, containing all of the linked channels to a group, as well as other information.
 ```JSON
 {
-    "groupId": <UUID>,
-    "groupName": <String>,
+    "_id": <UUID>,
+    "name": <String>,
     "channels": Array<UUID>,
     "users": Array<UUID>,
     "groupAssis": Array<UUID>,
@@ -65,7 +65,7 @@ The groups data structure is an array of group objects, containing all of the li
 
 ### Values
 - `id`: Unique identifier number for this group.
-- `groupName`: The user-friendly name of this group that is displayed to end users.
+- `name`: The user-friendly name of this group that is displayed to end users.
 - `channels`: An array of UUIDs of channels that are assigned to this group.
 - `users`: An array of UUIDs of users that have been added to this group.
 - `groupAssis`: An array of UUIDs of users that have been granted permission to act as Group Assistant of this group, being able to add new channels and assign/unassign users to channels.
@@ -74,16 +74,16 @@ The groups data structure is an array of group objects, containing all of the li
 The channels array contains channel objects, containing information about the chat history of a given channel, as well as the users who are permitted to access that channel.
 ```JSON
 {
-    "channelId": <UUID>,
-    "channelName": <String>,
+    "_id": <UUID>,
+    "name": <String>,
     "userAccess": Array<UUID>,
     "messageHistory": Array<Message>
 }
 ```
 
 ### Values
-- `channelId`: The unique identifier of this channel.
-- `channelName`: The user-friendly name of this channel that will be shown in the UI.
+- `_id`: The unique identifier of this channel.
+- `name`: The user-friendly name of this channel that will be shown in the UI.
 - `userAccess`: The list of users that have read/write access to this channel.
 - `messageHistory`: An array of Message objects that contains information about every message that has been sent to this channel.
 
@@ -92,18 +92,18 @@ A message object contains identification information for a given message, as wel
 
 ```JSON
 {
-    "messageId": <UUID>,
-    "messageAuthor": <UUID>,
-    "messageContent": <String>,
-    "messageTime": <Int>
+    "_id": <UUID>,
+    "author": <UUID>,
+    "content": <String>,
+    "time": <Int>
 }
 ```
 
 ### Values
-- `messageId`: The unique identifier of this message.
-- `messageAuthor`: The unique identifier of the author of this message.
-- `messageContent`: A string representing the content that was sent with this message.
-- `messageTime`: A 64-bit integer that represents the number of milliseconds since the epoch that the message was sent.
+- `_id`: The unique identifier of this message.
+- `author`: The unique identifier of the author of this message.
+- `content`: A string representing the content that was sent with this message.
+- `time`: A 64-bit integer that represents the number of milliseconds since the epoch that the message was sent.
 
 # Angular
 ## Services
