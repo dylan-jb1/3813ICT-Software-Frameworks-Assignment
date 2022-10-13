@@ -26,6 +26,7 @@ router.post('/pfp/:userId', userAuth, async (req,res) => {
     const requester = await userFromToken(req.headers.authorization.split("Basic ")[1]);
     if (req.params.userId == requester._id) {
         database.collection('users').updateOne({_id:ObjectId(requester._id)},{$set: {pfp:req.body.imgPath}});
+        res.sendStatus(200)
     }
 })
 

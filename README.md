@@ -1,7 +1,226 @@
 # Assignment Project for 3813ICT
 Below is all of the information describing the technicalities of as well as the development process of the 3813ICT Software Frameworks Assignment.
 
-# Documentation
+# Documentation - Phase 2
+
+## Git Layout
+The development for this project still continued to use only the single branch for development. Using more than one as just a single developer is unneccessary overhead that just serves to clog up an already pretty clunky interface, so the decision was made to just develop on main. 
+
+The file structure for this project is broken up into 3 parts; `Angular`, `REST API`, and the `MongoDB` database. These are represented in the Git repository under the files `Assignment-Angular`, `server/RestAPI`, and `server/MongoDB` respectively. These were kept seperate so they could each be run as their own service, with all of the relevant files clumped together in a way that is intuitive and makes sense.
+
+As the project was extremely rushed and late due to unforseen hurdles in life, there are very few commits representing the progress for phase 2. This is because it was all done in such a short time period, that the need for saving the state of working features would have been awkward. During the rushed development, multiple features were being worked on at a time so any one push would always have something in a unfinished state. 
+
+GitHub was chosen as the choice for version control as I have a lot of experience both in and out of uni with it and it's intuitive design makes me comfortable with my choice.
+
+## Rest API
+## Authentication Routes
+Authentication routes, compared to the admin routes, generally do not require high levels of permissions and tend to only require the confirmation that you are who you say you are.
+
+    "/login",
+    "/me",
+    "/display/:field",
+    "/id",
+    "/pfp/:userId"
+
+|||
+|-|-|
+| **Route** | `/login` |
+| **Method** | `POST` |
+| **Parameters** | `{username: string, password: string}` |
+| **Returns** | Valid User : `{statusCode:200, data: {token: <UUID>}}`</br>Invalid User : `{statusCode:401)` |
+| **Purpose** | This route is used to confirm the identity of a user when they log into the web application. |
+
+|||
+|-|-|
+| **Route** | `/me` |
+| **Method** | `GET` |
+| **Parameters** | None. Uses auth token |
+| **Returns** | `id, username, email, and role` of logged in user |
+| **Purpose** | This route serves to populate the current user data that is required by some of the webpages, and converts a UUID access token into an object. |
+
+|||
+|-|-|
+| **Route** | `/display/groups` |
+| **Method** | `GET` |
+| **Parameters** | None. Uses auth token |
+| **Returns** | Array of group objects containing only the id, name, channels, and group assistants. |
+| **Purpose** | This route is called when generating the main chat view for the screen, and pulls all of the groups that the user is present in and can see on the dashboard. |
+
+|||
+|-|-|
+| **Route** | `/display/channels` |
+| **Method** | `GET` |
+| **Parameters** | None. Uses auth token |
+| **Returns** | Array of channel objects containing only the id, name, and message history. |
+| **Purpose** | This route is used to get all of the channels that the currently authenticated user can read and chat in. |
+
+|||
+|-|-|
+| **Route** | `/id` |
+| **Method** | `GET` |
+| **Parameters** | `user UUID passed via query param` |
+| **Returns** | Returns the id, username, and profile picture of the requested user. |
+| **Purpose** | This route is used to identify other users, so that clients chatting can generate the profile pictures and the user-friendly usernames of eachother. |
+
+|||
+|-|-|
+| **Route** | `/pfp/:userId` |
+| **Method** | `POST` |
+| **Parameters** | `userId via URL path` |
+| **Returns** | Returns status code 200 if the operation was successful |
+| **Purpose** | A post request is sent to this endpoint by a user to change the image on their profile.. |
+
+## Admin Routes
+Admin routes require the highest levels of permissions, and are concerned with manupulating in great detail the full range of data stored in the system. The return results of each of these function vary depending on the level of authentication a user has, and may not always return a result of unauthorised. 
+
+    "/users*",
+    "/groups*",
+    "/channels*"
+
+### Users
+
+|||
+|-|-|
+| **Route** | `/users/:userId` |
+| **Method** | `GET` |
+| **Parameters** | `userId via URL path` |
+| **Returns** | Returns status code 200 if the operation was successful, as well as an object containing the requested user's data. |
+| **Purpose** | Used to allow admins to edit specific information of each user on the system. |
+
+|||
+|-|-|
+| **Route** | `/users/` |
+| **Method** | `GET` |
+| **Parameters** | None |
+| **Returns** | Returns status code 200, as well as the list of all users that the authenticated user has admin permissions over. |
+| **Purpose** | Used to show all of the users in the system on the admin settings screen. |
+
+|||
+|-|-|
+| **Route** | `/users` |
+| **Method** | `POST` |
+| **Parameters** | `username, email, password` |
+| **Returns** | Returns status code 201 if the operation was successful, as well as the Id for the newly created user. Will fail if duplicate username exists. |
+| **Purpose** | Route used to create a new user with the given parameters. |
+
+|||
+|-|-|
+| **Route** | `/users/:userId` |
+| **Method** | `PATCH` |
+| **Parameters** | `add: {<field to be added to>:<data to add to field>},`</br>`remove: {<field to be removed from>:<data to be removed from field>},`</br>`update: {<field to update>:<data to replace>}` |
+| **Returns** | Returns status code 200 if the operation was successful |
+| **Purpose** | This is used in order to be able to change every detail about a user in the system. |
+
+|||
+|-|-|
+| **Route** | `/users/:userId` |
+| **Method** | `DELETE` |
+| **Parameters** | `userId via URL path` |
+| **Returns** | Returns status code 200 if the operation was successful, as well as a confirmation message. |
+| **Purpose** | An admin makes a post request to this endpoint to permanently remove a user from the system. |
+
+</br>
+
+### Groups
+
+|||
+|-|-|
+| **Route** | `/groups/` |
+| **Method** | `GET` |
+| **Parameters** | None |
+| **Returns** | Returns status code 200, as well a list of every group that the authenticated user has high enough permissions to manage. |
+| **Purpose** | Provides the data for the group list on the admin settings page. |
+
+|||
+|-|-|
+| **Route** | `/groups` |
+| **Method** | `POST` |
+| **Parameters** | `name` |
+| **Returns** | Returns status code 201 if the operation was successful, as well as the Id for the newly created group. |
+| **Purpose** | Used to create a new group in the database with the provided name. |
+
+|||
+|-|-|
+| **Route** | `/groups/:groupId` |
+| **Method** | `PATCH` |
+| **Parameters** | `add: {<field to be added to>:<data to add to field>},`</br>`remove: {<field to be removed from>:<data to be removed from field>},`</br>`update: {<field to update>:<data to replace>}` |
+| **Returns** | Returns status code 200 if the operation was successful |
+| **Purpose** | This is used in order to make fine-tuned changes to a group. |
+
+|||
+|-|-|
+| **Route** | `/groups/:groupId` |
+| **Method** | `DELETE` |
+| **Parameters** | `groupId via URL path` |
+| **Returns** | Returns status code 200 if the operation was successful, as well as a confirmation message. |
+| **Purpose** | An admin makes a post request to this endpoint to permanently remove a group from the system. |
+
+</br>
+
+### Channels
+
+|||
+|-|-|
+| **Route** | `/channels/` |
+| **Method** | `GET` |
+| **Parameters** | None |
+| **Returns** | Returns status code 200, and a list of all channels that the user has permission to modify. |
+| **Purpose** | Used to show all of the users in the system on the admin settings screen. |
+
+|||
+|-|-|
+| **Route** | `/channels` |
+| **Method** | `POST` |
+| **Parameters** | `name` |
+| **Returns** | Returns status code 201 if the operation was successful, as well as the Id for the newly created channel. |
+| **Purpose** | Route used to create a new channel with the provided name. |
+
+|||
+|-|-|
+| **Route** | `/channels/:channelId` |
+| **Method** | `PATCH` |
+| **Parameters** | `add: {<field to be added to>:<data to add to field>},`</br>`remove: {<field to be removed from>:<data to be removed from field>},`</br>`update: {<field to update>:<data to replace>}` |
+| **Returns** | Returns status code 200 if the operation was successful |
+| **Purpose** | This is used in order to make fine-tuned changes to a channel object. |
+
+|||
+|-|-|
+| **Route** | `/channels/:channelId` |
+| **Method** | `DELETE` |
+| **Parameters** | `channelId via URL path` |
+| **Returns** | Returns status code 200 if the operation was successful, as well as a confirmation message. |
+| **Purpose** | An admin makes a post request to this endpoint to permanently remove a channel from the system. |
+
+## Authorization
+The authorization system implemented in the code uses a custom made token system, which holds the identity of a user and represents them in a way that is designed to be more tamper proof than simply storing the user object. Each time a user logs in, if there is already a valid, non expired token in their name, that is grabbed. Otherwise, a new token is generated with a 1 hour expiry which represents the users' identity and permission. The tokens are self validating and self renewing.
+
+## Data Structures
+The data structures of the core objects of the project remained very similar to their design for phase 1, though with changes being made along the way that suited the natural progression of the design process. The sections in the phase 1 design document have been adjusted accordingly to the new standard formats. The most noticeable improvements is the changing of the names from - for example - `groupId` to `id`, which greatly improves readability and clarity when it comes to handling the data. 
+
+Four new helper data structures were created that simplified some of the more tedious tasks of the development. These are:
+ - `socketUtil.js`: This object was created in order to assist with preserving states of the server socket, while still allowing access to the main socket connection in the files that need it. It consists of an initial server connection function, a function that returns the currently active connection, and a final function that closes the connection. This, like the mongoUtil function, is node.js's solution to a Singleton design pattern. 
+ - `error.js`: This file is as close to JavaScript can really come to a struct. It uses practically named object keys that represent both error codes and the associated message. This saves development work and makes more a much more consistent and user friendly interface.
+ - `authFunc.js`: This file contains all of the functions that handle user authentication. They were extracted and put into a shared folder because almost every endpoint needed to use them, so it was incredibly convenient. 
+ - `mongoUtil.js`: Much like the socketUtil file, this serves as a Singleton manager for the mongo database connection, ensuring that a single connection is maintained for the duration of the programs runtime, which removes any possible data merging conflicts as well as clears up the mongo network and is more efficient.
+
+ ## Dividing of responsibilities between the client and the server
+ The intended design principle of the second phase of this project was a strong focus on trying to stick to a MVC design pattern. Failing to do this during phase 1 of the assignment caused many headaches when attempting to remove the old and overly specific code that was embedded in the view of the web page and replace it with a new one. 
+
+ The new system tries to have as much of the heavy lifting as possible handled by the REST API, including user permission filtering as well as micro and macro authentication. This frees up the model controlling the web page to be able to make clear and straightforward requests to endpoint on the API, that wont require a colossal rewrite if the inner working of some of the mechanisms change. The nature of angular means that the view is tied very closely to the model, while also being distinct enough that they dont step on eachothers toes. The Angular html of the project calls functions defined in the typescript component that keeps the front end uncluttered and only full of the information that is needed.
+
+ ## Angular Architechure
+ There has been very little change in the projects architecture since the shift from phase 1. This was because in terms of building blocks each piece was already where I wanted it, the largest time sinks in the transition was the extraction of all of the legacy code and function from inside of the angular components.
+
+ There are 3 created components for this assignment, those being `Settings`, `Groups`, and `Login`. The function and purpose of each of these components has already been described in detail in phase 1 of the report down below.
+
+ ## Flow of data between server and client
+ In all of the cases except one, when a change is made to backend data and is reflect on the front end, this is due to the request being made from the front end immediately being sent upon its creation, and the relevant database state after these changes being returned. This means that the synchronicity between the client and the server is straight forward and as expected. 
+
+ The one exception to this case is the messaging system. There are specific messages - i.e. ones from the system that indicate when a user is joining/ has left a channel - that are only updated on this local client. These are lost when the message history is refreshed again. This decision was made with performance and user friendliness in mind - the constant updating of people/leaving joining a channel creates unneccesarry clutter in the chat log, as well as unneccessary server traffic that could potentially slow down real attempts at communication.
+
+ When a message is receieved from the socket system, is it added to the currently opened channels history of messages. This does not require a request to the REST API backend, which saved processing time and slots as there could potentially be a lot of messages coming through at once. The message is is properly synced with the server once a user leaves/joins a new channel. This triggers a HTTP request which gets the current message history of that specific channel.
+
+# Documentation - Phase 1
 
 Below is the documentation for phase 1 of the assignment. It also contains artefacts of information that may not be implemented yet, and may be inaccurate. This is because this documentation is written as a plan for the future development to be done in phase 2, and represents the end goal rather than the current state.
 
