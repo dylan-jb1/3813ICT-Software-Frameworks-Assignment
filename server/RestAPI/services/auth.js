@@ -13,12 +13,20 @@ const authRoutes = [
     "/me",
     "/display/:field",
     "/id",
+    "/pfp/:userId"
 ]
 
 const database = mongoUtil.getDb();
 
 router.use((req, res, next) => {
     next();
+})
+
+router.post('/pfp/:userId', userAuth, async (req,res) => {
+    const requester = await userFromToken(req.headers.authorization.split("Basic ")[1]);
+    if (req.params.userId == requester._id) {
+        database.collection('users').updateOne({_id:ObjectId(requester._id)},{$set: {pfp:req.body.imgPath}});
+    }
 })
 
 router.post('/login', async (req, res) => {
@@ -93,10 +101,10 @@ router.get("/id", userAuth, async (req,res) => {
             res.send({
                 _id:userData._id,
                 username:userData.username,
-                pfp:userData.pfp
+                pfp:userData.pfp?userData.pfp:"http://localhost:4000/default.jpg"
             })
         } else {
-            res.status(400).send(ApplicationError.ResourceNonExistant);
+            res.status(404).send(ApplicationError.ResourceNonExistant);
         }
     }
     else {

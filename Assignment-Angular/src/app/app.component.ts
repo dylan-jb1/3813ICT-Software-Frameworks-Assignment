@@ -1,9 +1,6 @@
 import { Component } from '@angular/core';
 import { Location } from '@angular/common';
 import { Router } from '@angular/router';
-import channelJson from '../assets/channel_list.json'
-import groupJson from '../assets/group_list.json'
-import userJson from '../assets/user_list.json'
 
 @Component({
   selector: 'app-root',
@@ -15,10 +12,11 @@ export class AppComponent {
 
   constructor(private router: Router, private location: Location) { 
     if (localStorage.getItem('token') == null)
-      router.navigate(["/login"])
+      this.router.navigate(["/login"])
     
-    if (this.location.path() == "/") {
-      router.navigate(['/groups'])
+    console.log(this.location.path())
+    if (this.location.path() == "/" || this.location.path() == "") {
+      this.router.navigate(['/groups'])
     } else if (this.location.path() != "/login") {
       // validate user each time a page is loaded
       const userToken = localStorage.getItem('token');
@@ -27,10 +25,10 @@ export class AppComponent {
         headers: {
           Authorization: "Basic " + userToken
         }
-      }).then(response => {
+      }).then((response) => {
         if (!response.ok) {
           localStorage.removeItem('token');
-          router.navigate(["/login"]);
+          this.router.navigate(["/login"]);
         }
       })
     }

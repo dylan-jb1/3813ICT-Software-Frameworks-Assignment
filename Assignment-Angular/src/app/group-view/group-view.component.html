@@ -22,19 +22,41 @@
             </div>
         </div>
         <div id="channelView" class="d-flex flex-column justify-content-end flex-grow-1">
-            <ul id="messages" class="list-group list-group-flush" >
-                <li *ngFor="let message of activeChannel.messageHistory" class="list-group-item">
-                    <div id="messageAuthor">
-                        {{userdata[message.author]? userdata[message.author].username : "loading username..."}}
+            <ul id="messages" class="list-group list-group-flush flex-column-reverse" >
+                <li *ngFor="let message of activeChannel.messageHistory ? activeChannel.messageHistory.slice().reverse() : []" class="list-group-item d-flex flex-row">
+                    <div>
+                        <img *ngIf="userdata[message.author]" src="{{userdata[message.author].userInfo.pfp}}" class="profilePicture"/>
                     </div>
-                    <div id="messageContent">
-                        {{message.content}}
+                    <div>
+                        <div id="messageAuthor" [ngStyle]="{'color':(userdata[message.author]?('#'+userdata[message.author].color):'green')}">
+                            {{userdata[message.author]? userdata[message.author].userInfo.username : "loading username..."}}
+                        </div>
+                        <div id="messageContent" *ngIf="!message.content.imgPath">
+                            {{message.content}}
+                        </div>
+                        <div id="messageContent" *ngIf="message.content.imgPath">
+                            <img src="{{message.content.imgPath}}" style="max-width: 100%;"/>
+                        </div>
                     </div>
                 </li>
             </ul>
-            <div class="input-group mb-3" id="chatBox" *ngIf="activeChannel.empty == null">
-                <input type="text" class="form-control" placeholder="Type your message..." aria-label="message content" aria-describedby="button-addon2">
-                <button class="btn btn-primary" type="button" id="button-addon2">Send</button>
+            <div class="input-group" id="chatBox" *ngIf="activeChannel.empty == null">
+                <input #messageInput type="text" class="form-control" placeholder="Type your message..." aria-label="message content" aria-describedby="button-addon2" (keydown.enter)="sendMessage(messageInput.value);messageInput.value =''" >
+                <button class="btn btn-primary" type="button" id="button-addon2" (click)="sendMessage(messageInput.value);messageInput.value =''">Send</button>
+                <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="visually-hidden">Toggle Dropdown</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <label for="inputGroupFile01" class="btn btn-outline-dark imageButtons">Change profile picture</label>
+                        <input type="file" accept=".png,.jpg,.jpeg" style="display:none;" id="inputGroupFile01" (change)="profilePictureUpload($event.target);">
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <label for="inputGroupFile02" class="btn btn-primary imageButtons">Send image to chat</label>
+                        <input type="file" accept=".png,.jpg,.jpeg" style="display:none;" id="inputGroupFile02" (change)="imageChatMessage($event.target);">
+                    </li>
+                </ul>
             </div>
         </div>
     </div>

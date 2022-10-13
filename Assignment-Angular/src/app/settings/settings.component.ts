@@ -350,7 +350,6 @@ export class SettingsComponent implements OnInit {
   }
 
   async updateUser(userId: string, addData: any, removeData: any, updateData: any) {
-    console.log(updateData)
     const userToken = localStorage.getItem('token');
     await fetch("http://localhost:4000/users/"+userId, {
       method: "PATCH",

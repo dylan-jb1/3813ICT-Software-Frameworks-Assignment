@@ -44,7 +44,6 @@ const checkToken = async (token) => {
 
 const requiredPerms = async (authLevel, user, group = null) => {
     const userFound = await database.collection("users").findOne({"_id": ObjectId(user)});
-    console.log(userFound)
     if (userFound && user) {
         if (authLevel == "super_admin") {
             return userFound.role == 2;
